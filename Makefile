@@ -1,0 +1,51 @@
+# Compiler and flags
+CC := gcc
+CFLAGS := -Wall -Wextra -std=gnu11 -fPIC \
+	  -I$(PWD) -Icore/include \
+	  $(shell python3-config --includes)
+
+ifeq ($(DEBUG),1)
+    CFLAGS += -g -DDEBUG
+endif
+
+LDFLAGS := -shared $(shell python3-config --ldflags)
+
+# Source directories
+CORE_CLIENT_SRC := core/src/client
+CORE_COMMON_SRC := core/src/common
+ADAPTER_CLIENT_SRC := adapters/src/client
+
+# Target Python module
+ADAPTER_TARGET := pygeist_client
+TARGET_NAME := _adapter.so
+
+# Build directory for object files
+OBJ_DIR := build
+
+# Find all source files recursively
+CORE_SRC := $(shell find $(CORE_CLIENT_SRC) $(CORE_CLIENT_SRC) -name '*.c')
+ADAPTER_SRC := $(shell find $(ADAPTER_CLIENT_SRC) -name '*.c')
+SRC := $(CORE_SRC) $(ADAPTER_SRC)
+
+# Corresponding object files in build directory
+OBJ := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC))
+
+# Default target
+all: $(ADAPTER_TARGET)/$(TARGET_NAME)
+
+# Build shared library
+$(ADAPTER_TARGET)/$(TARGET_NAME): $(OBJ)
+	@mkdir -p $(ADAPTER_TARGET)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+# Compile source files into object files in build/
+$(OBJ_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Clean build artifacts
+clean:
+	rm -rf $(OBJ_DIR)
+	rm -f $(ADAPTER_TARGET)/$(TARGET_NAME)
+
+.PHONY: all clean
