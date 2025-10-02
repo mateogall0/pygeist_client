@@ -25,6 +25,18 @@ static PyMethodDef AdapterMethods[] = {
      run_make_client_request,
      METH_VARARGS | METH_KEYWORDS,
      "Make `zclient_handler_t` request"},
+    {"_listen_client_input",
+     run_listen_client_input,
+     METH_VARARGS | METH_KEYWORDS,
+     "Listen to `zclient_handler_t` input"},
+    {"_process_client_input",
+     run_process_client_input,
+     METH_VARARGS | METH_KEYWORDS,
+     "Process `zclient_handler_t` input"},
+    {"_get_client_response",
+     run_get_client_response,
+     METH_VARARGS | METH_KEYWORDS,
+     "Get `zclient_handler_t` response"},
     {NULL, NULL, 0, NULL}
 };
 

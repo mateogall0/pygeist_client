@@ -5,6 +5,7 @@
 
 
 extern PyObject *Response;
+extern PyObject *Unrequested;
 
 
 void init_classes();

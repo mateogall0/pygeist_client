@@ -214,4 +214,25 @@ run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs) {
 }
 
 PyObject *
-run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwargs);
+run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwargs) {
+    (void)self;
+    static char *kwlist[] = {"zclient_handler", NULL};
+    PyObject* capsule;
+
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "O",
+                                     kwlist,
+                                     &capsule))
+        return (NULL);
+    zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
+    if (!zclient)
+        return (NULL);
+    received_payload_t *payload = zclient_pop_unrequested_payload(zclient);
+    PyObject* arglist = Py_BuildValue("(s)", payload->data);
+    PyObject* instance = PyObject_CallObject(Unrequested, arglist);
+    Py_DECREF(arglist);
+
+    return (instance);
+
+}
