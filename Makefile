@@ -23,7 +23,7 @@ TARGET_NAME := _adapter.so
 OBJ_DIR := build
 
 # Find all source files recursively
-CORE_SRC := $(shell find $(CORE_CLIENT_SRC) $(CORE_CLIENT_SRC) -name '*.c')
+CORE_SRC := $(shell find $(CORE_CLIENT_SRC) $(CORE_COMMON_SRC) -name '*.c')
 ADAPTER_SRC := $(shell find $(ADAPTER_CLIENT_SRC) -name '*.c')
 SRC := $(CORE_SRC) $(ADAPTER_SRC)
 
