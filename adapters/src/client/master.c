@@ -1,5 +1,6 @@
 #include <Python.h>
 #include "adapters/include/client/base.h"
+#include "adapters/include/client/classes.h"
 #include "adapters/include/client/exceptions.h"
 
 
@@ -16,6 +17,14 @@ static PyMethodDef AdapterMethods[] = {
      run_connect_client,
      METH_VARARGS | METH_KEYWORDS,
      "Connect `zclient_handler_t`"},
+    {"_disconnect_client",
+     run_disconnect_client,
+     METH_VARARGS | METH_KEYWORDS,
+     "Disconnect `zclient_handler_t`"},
+    {"_make_client_request",
+     run_make_client_request,
+     METH_VARARGS | METH_KEYWORDS,
+     "Make `zclient_handler_t` request"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -38,6 +47,7 @@ PyMODINIT_FUNC PyInit__adapter(void) {
         return (NULL);
 
     init_exceptions();
+    init_classes();
 
     return (m);
 }

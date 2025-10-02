@@ -5,7 +5,8 @@
 
 
 extern PyObject *FailedConnection;
-
+extern PyObject *NotConnected;
+extern PyObject *FailedResponseProcess;
 
 void init_exceptions();
 

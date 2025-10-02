@@ -3,6 +3,7 @@
 #include "core/include/common/methods.h"
 #include "adapters/include/client/exceptions.h"
 #include "adapters/include/client/config.h"
+#include "adapters/include/client/classes.h"
 
 
 PyObject*
@@ -81,4 +82,136 @@ run_connect_client(PyObject* self, PyObject* args, PyObject* kwargs) {
 }
 
 PyObject *
-run_disconnect_client(PyObject* self, PyObject* args, PyObject* kwargs);
+run_disconnect_client(PyObject* self, PyObject* args, PyObject* kwargs) {
+    (void)self;
+    PyObject* capsule;
+    static char *kwlist[] = {"zclient_handler", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "O",
+                                     kwlist,
+                                     &capsule))
+        return (NULL);
+
+    zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
+    if (!zclient)
+        return (NULL);
+    disconnect_zclient(zclient);
+    Py_RETURN_NONE;
+}
+
+PyObject *
+run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
+    (void)self;
+    static char *kwlist[] = {"zclient_handler",
+                             "method",
+                             "target",
+                             "headers",
+                             "body",
+                             NULL};
+    PyObject* capsule;
+    int method = 0;
+    char *target = "";
+    char *headers = "";
+    char *body = "";
+
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "Ois|ss",
+                                     kwlist,
+                                     &capsule,
+                                     &method,
+                                     &headers,
+                                     &body))
+        return (NULL);
+
+    zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
+    if (!zclient)
+        return (NULL);
+
+    unsigned long req_id = zclient_make_request(zclient, method, target, headers, body);
+
+    return PyLong_FromUnsignedLong(req_id);
+}
+
+PyObject *
+run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
+    (void)self;
+    static char *kwlist[] = {"zclient_handler", NULL};
+    PyObject* capsule;
+
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "O",
+                                     kwlist,
+                                     &capsule))
+        return (NULL);
+
+    zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
+    if (!zclient)
+        return (NULL);
+    zclient_listen_input(zclient);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+run_process_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
+    (void)self;
+    static char *kwlist[] = {"zclient_handler", NULL};
+    PyObject* capsule;
+
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "O",
+                                     kwlist,
+                                     &capsule))
+        return (NULL);
+
+    zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
+    if (!zclient)
+        return (NULL);
+    zclient_process_input(zclient);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs) {
+    (void)self;
+    static char *kwlist[] = {"zclient_handler", "req_id", NULL};
+    PyObject* capsule;
+    unsigned long req_id;
+
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "Ok",
+                                     kwlist,
+                                     &capsule,
+                                     &req_id))
+        return (NULL);
+    zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
+    if (!zclient)
+        return (NULL);
+
+    zclient_response_t *res = zclient_get_response(zclient, req_id);
+    if (!res) {
+        PyErr_SetString(FailedResponseProcess,
+                        "response not found");
+        return (NULL);
+    }
+    PyObject* arglist = Py_BuildValue("(ksss)",
+                                      res->id,
+                                      res->headers,
+                                      res->body,
+                                      res->status_msg);
+    PyObject* instance = PyObject_CallObject(Response, arglist);
+
+    Py_DECREF(arglist);
+
+    return (instance);
+}
+
+PyObject *
+run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwargs);
