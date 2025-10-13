@@ -97,6 +97,8 @@ run_disconnect_client(PyObject* self, PyObject* args, PyObject* kwargs) {
     zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
     if (!zclient)
         return (NULL);
+
+    if (zclient)
     disconnect_zclient(zclient);
     Py_RETURN_NONE;
 }
@@ -234,5 +236,4 @@ run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwa
     Py_DECREF(arglist);
 
     return (instance);
-
 }
