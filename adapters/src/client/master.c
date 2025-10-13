@@ -2,6 +2,7 @@
 #include "adapters/include/client/base.h"
 #include "adapters/include/client/classes.h"
 #include "adapters/include/client/exceptions.h"
+#include "adapters/include/client/const.h"
 
 
 static PyMethodDef AdapterMethods[] = {
@@ -60,6 +61,7 @@ PyMODINIT_FUNC PyInit__adapter(void) {
 
     init_exceptions();
     init_classes();
+    init_methods(m);
 
     return (m);
 }

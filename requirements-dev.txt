@@ -1,2 +1,3 @@
 pygeist
 pytest
+pytest-asyncio

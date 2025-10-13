@@ -106,6 +106,7 @@ run_disconnect_client(PyObject* self, PyObject* args, PyObject* kwargs) {
 PyObject *
 run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
+    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler",
                              "method",
                              "target",
@@ -124,6 +125,7 @@ run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
                                      kwlist,
                                      &capsule,
                                      &method,
+                                     &target,
                                      &headers,
                                      &body))
         return (NULL);
@@ -134,12 +136,14 @@ run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
 
     unsigned long req_id = zclient_make_request(zclient, method, target, headers, body);
 
+    PyGILState_Release(gstate);
     return PyLong_FromUnsignedLong(req_id);
 }
 
 PyObject *
 run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
+    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", NULL};
     PyObject* capsule;
 
@@ -155,12 +159,14 @@ run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
         return (NULL);
     zclient_listen_input(zclient);
 
+    PyGILState_Release(gstate);
     Py_RETURN_NONE;
 }
 
 PyObject *
 run_process_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
+    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", NULL};
     PyObject* capsule;
 
@@ -176,12 +182,14 @@ run_process_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
         return (NULL);
     zclient_process_input(zclient);
 
+    PyGILState_Release(gstate);
     Py_RETURN_NONE;
 }
 
 PyObject *
 run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
+    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", "req_id", NULL};
     PyObject* capsule;
     unsigned long req_id;
@@ -212,12 +220,14 @@ run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs) {
 
     Py_DECREF(arglist);
 
+    PyGILState_Release(gstate);
     return (instance);
 }
 
 PyObject *
 run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
+    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", NULL};
     PyObject* capsule;
 
@@ -235,5 +245,6 @@ run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwa
     PyObject* instance = PyObject_CallObject(Unrequested, arglist);
     Py_DECREF(arglist);
 
+    PyGILState_Release(gstate);
     return (instance);
 }
