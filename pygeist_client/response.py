@@ -23,7 +23,7 @@ class Response:
     def body(self, body: str | dict | NoneType) -> None:
         try:
             self._body = json.loads(body)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, TypeError):
             self._body = None
 
     @property
