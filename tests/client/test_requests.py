@@ -8,5 +8,6 @@ async def test_math_server(math_example_server):
     client = PygeistClient()
     client.connect('127.0.0.1', math_example_server)
     res = await client.get('/', {'Operation-Type': 'sum'}, '20')
-    assert res
+    assert res.status == 200
+    assert res.body == '40.0'
     client.disconnect()

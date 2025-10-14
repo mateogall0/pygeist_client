@@ -14,6 +14,7 @@ class PygeistClient(AsyncMethodHandler):
         self.c = _adapter._create_client(unresolved_payload_capacity,
                                          resolved_payload_capacity)
         self._loop = None
+        self._loop_ready = threading.Event()
         self._task = None
         self._thread = None
 
@@ -27,8 +28,12 @@ class PygeistClient(AsyncMethodHandler):
     async def _process_input(self) -> None:
         try:
             while True:
-                await asyncio.to_thread(_adapter._listen_client_input, self.c)
-                await asyncio.to_thread(_adapter._process_client_input, self.c)
+                await self._loop.run_in_executor(None,
+                                                 _adapter._listen_client_input,
+                                                 self.c)
+                await self._loop.run_in_executor(None,
+                                                 _adapter._process_client_input,
+                                                 self.c)
         except asyncio.CancelledError:
             pass
 
@@ -37,13 +42,12 @@ class PygeistClient(AsyncMethodHandler):
             def loop_thread():
                 self._loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(self._loop)
+                self._loop_ready.set()
                 self._loop.run_forever()
 
             self._thread = threading.Thread(target=loop_thread, daemon=True)
             self._thread.start()
-
-            while self._loop is None:
-                pass
+            self._loop_ready.wait()
 
         if self._task is None:
             self._task = asyncio.run_coroutine_threadsafe(self._process_input(), self._loop)

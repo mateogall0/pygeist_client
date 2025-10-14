@@ -6,6 +6,7 @@ class Response:
                  status_msg: str,
                  ) -> None:
         self.rid: int = rid
-        self.headers: str = body
+        self.headers: str = headers
         self.body: str = body
         self.status_msg: str = status_msg
+        self.status = int(status_msg)
