@@ -1,4 +1,4 @@
-from pygeist_client.client import PygeistClient
+from .client import PygeistClient
 
 
 __all__ = ['PygeistClient']

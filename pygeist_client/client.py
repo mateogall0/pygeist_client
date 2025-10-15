@@ -3,7 +3,6 @@ from pygeist_client.response import Response
 from pygeist_client.exceptions import FailedResponseProcess
 from pygeist_client.abstract.methods_handler import AsyncMethodHandler
 import asyncio
-import threading
 
 
 class PygeistClient(AsyncMethodHandler):
@@ -22,7 +21,7 @@ class PygeistClient(AsyncMethodHandler):
                       headers: dict = {},
                       body = '',
                       ) -> Response:
-        headers_str = "\r\n".join(f"{k}: {v}" for k, v in headers.items()) + "\r\n"
+        headers_str = "\r\n".join(f"{k}: {v}" for k, v in headers.items()) + "\r\n\r\n"
         req_id = await asyncio.to_thread(
             _adapter._make_client_request,
             self.c,
@@ -32,15 +31,16 @@ class PygeistClient(AsyncMethodHandler):
             body,
         )
 
-        await asyncio.to_thread(_adapter._listen_client_input,
-                                self.c)
-        await asyncio.to_thread(_adapter._process_client_input,
-                                self.c)
-        return await asyncio.to_thread(
-            _adapter._get_client_response,
-            self.c,
-            req_id,
+        await asyncio.wait_for(
+            asyncio.to_thread(_adapter._listen_client_input,
+                              self.c),
+            timeout=2.0
         )
+        await asyncio.to_thread(_adapter._process_client_input, self.c)
+
+        return await asyncio.to_thread(_adapter._get_client_response,
+                                       self.c,
+                                       req_id)
 
     def disconnect(self) -> None:
         _adapter._disconnect_client(self.c)

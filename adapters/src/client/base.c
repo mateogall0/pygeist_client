@@ -143,7 +143,6 @@ run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
 PyObject *
 run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
-    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", NULL};
     PyObject* capsule;
 
@@ -157,9 +156,9 @@ run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
     zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
     if (!zclient)
         return (NULL);
+    Py_BEGIN_ALLOW_THREADS;
     zclient_listen_input(zclient);
-
-    PyGILState_Release(gstate);
+    Py_END_ALLOW_THREADS;
     Py_RETURN_NONE;
 }
 

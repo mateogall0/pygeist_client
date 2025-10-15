@@ -73,7 +73,6 @@ def math_example_server() -> int:
                     break
 
             if not data:
-                client_sock.close()
                 return
 
             lines = data.decode().split("\r\n")
@@ -102,13 +101,11 @@ def math_example_server() -> int:
                     if num == 0:
                         response = f"{RES_VERSION} 400 {id}\r\nContent-Length: 0\r\n\r\n"
                         client_sock.sendall(response.encode())
-                        client_sock.close()
                         return
                     result = num / num
                 else:
                     response = f"{RES_VERSION} 400 {id}\r\nContent-Length: 0\r\n\r\n"
                     client_sock.sendall(response.encode())
-                    client_sock.close()
                     return
 
                 body_bytes = str(result).encode()
@@ -122,8 +119,6 @@ def math_example_server() -> int:
             client_sock.sendall(response.encode())
         except Exception:
             pass
-        finally:
-            client_sock.close()
 
     def server_loop():
         while not stop_event.is_set():
