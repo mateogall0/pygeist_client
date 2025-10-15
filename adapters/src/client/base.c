@@ -105,7 +105,6 @@ run_disconnect_client(PyObject* self, PyObject* args, PyObject* kwargs) {
 
 PyObject *
 run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
-    PyGILState_STATE gstate = PyGILState_Ensure();
     (void)self;
     static char *kwlist[] = {"zclient_handler",
                              "method",
@@ -135,9 +134,10 @@ run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
         return (NULL);
 
     unsigned long req_id;
-    req_id = zclient_make_request(zclient, method, target, headers, body);
 
-    PyGILState_Release(gstate);
+    Py_BEGIN_ALLOW_THREADS;
+    req_id = zclient_make_request(zclient, method, target, headers, body);
+    Py_END_ALLOW_THREADS;
 
     return PyLong_FromUnsignedLong(req_id);
 }
@@ -155,10 +155,10 @@ run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
                                      &capsule))
         return (NULL);
 
-    Py_BEGIN_ALLOW_THREADS;
     zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
     if (!zclient)
         return (NULL);
+    Py_BEGIN_ALLOW_THREADS;
     zclient_listen_input(zclient);
     Py_END_ALLOW_THREADS;
     Py_RETURN_NONE;
@@ -190,7 +190,6 @@ run_process_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
 PyObject *
 run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
-    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", "req_id", NULL};
     PyObject* capsule;
     unsigned long req_id;
@@ -206,7 +205,10 @@ run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs) {
     if (!zclient)
         return (NULL);
 
-    zclient_response_t *res = zclient_get_response(zclient, req_id);
+    zclient_response_t *res = NULL;
+    Py_BEGIN_ALLOW_THREADS;
+    res = zclient_get_response(zclient, req_id);
+    Py_END_ALLOW_THREADS;
     if (!res) {
         PyErr_SetString(FailedResponseProcess,
                         "response not found");
@@ -214,21 +216,19 @@ run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs) {
     }
     PyObject* arglist = Py_BuildValue("(ksss)",
                                       res->id,
-                                      res->headers,
-                                      res->body,
-                                      res->status_msg);
+                                      res->headers ? res->headers : "",
+                                      res->body ? res->body : "",
+                                      res->status_msg ? res->status_msg : "");
     PyObject* instance = PyObject_CallObject(Response, arglist);
 
     Py_DECREF(arglist);
 
-    PyGILState_Release(gstate);
     return (instance);
 }
 
 PyObject *
 run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
-    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", NULL};
     PyObject* capsule;
 
@@ -241,11 +241,15 @@ run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwa
     zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
     if (!zclient)
         return (NULL);
-    received_payload_t *payload = zclient_pop_unrequested_payload(zclient);
+    received_payload_t *payload = NULL;
+    Py_BEGIN_ALLOW_THREADS;
+    payload = zclient_pop_unrequested_payload(zclient);
+    Py_END_ALLOW_THREADS;
+    if (!payload)
+        Py_RETURN_NONE;
     PyObject* arglist = Py_BuildValue("(s)", payload->data);
     PyObject* instance = PyObject_CallObject(Unrequested, arglist);
     Py_DECREF(arglist);
 
-    PyGILState_Release(gstate);
     return (instance);
 }
