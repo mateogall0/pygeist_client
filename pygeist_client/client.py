@@ -3,8 +3,6 @@ from pygeist_client.response import Response
 from pygeist_client.exceptions import FailedResponseProcess
 from pygeist_client.abstract.methods_handler import AsyncMethodHandler
 import asyncio
-import time
-import threading
 
 
 class PygeistClient(AsyncMethodHandler):
@@ -13,14 +11,6 @@ class PygeistClient(AsyncMethodHandler):
                  ) -> None:
         self.c = _adapter._create_client(1, 1)
         self.response_timeout = response_timeout
-
-    def _process_loop(self) -> None:
-        while not self._stop_event.is_set():
-            try:
-                _adapter._listen_client_input(self.c)
-                _adapter._process_client_input(self.c)
-            except Exception:
-                pass
 
     async def link(self,
                    url: str,
@@ -43,20 +33,17 @@ class PygeistClient(AsyncMethodHandler):
             headers_str,
             body,
         )
-        while True:
-            try:
-                await asyncio.wait_for(
-                    asyncio.to_thread(_adapter._listen_client_input,
-                                      self.c),
-                    timeout=self.response_timeout,
-                )
-                await asyncio.to_thread(_adapter._process_client_input, self.c)
 
-                return await asyncio.to_thread(_adapter._get_client_response,
-                                               self.c,
-                                               req_id)
-            except FailedResponseProcess:
-                pass # continue until it finds the answer
+        await asyncio.wait_for(
+            asyncio.to_thread(_adapter._listen_client_input,
+                              self.c),
+            timeout=self.response_timeout,
+        )
+        await asyncio.to_thread(_adapter._process_client_input, self.c)
+
+        return await asyncio.to_thread(_adapter._get_client_response,
+                                       self.c,
+                                       req_id)
 
     async def unlink(self) -> None:
         _adapter._disconnect_client(self.c)
