@@ -105,8 +105,8 @@ run_disconnect_client(PyObject* self, PyObject* args, PyObject* kwargs) {
 
 PyObject *
 run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
-    (void)self;
     PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)self;
     static char *kwlist[] = {"zclient_handler",
                              "method",
                              "target",
@@ -134,9 +134,11 @@ run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
     if (!zclient)
         return (NULL);
 
-    unsigned long req_id = zclient_make_request(zclient, method, target, headers, body);
+    unsigned long req_id;
+    req_id = zclient_make_request(zclient, method, target, headers, body);
 
     PyGILState_Release(gstate);
+
     return PyLong_FromUnsignedLong(req_id);
 }
 
@@ -153,10 +155,10 @@ run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
                                      &capsule))
         return (NULL);
 
+    Py_BEGIN_ALLOW_THREADS;
     zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
     if (!zclient)
         return (NULL);
-    Py_BEGIN_ALLOW_THREADS;
     zclient_listen_input(zclient);
     Py_END_ALLOW_THREADS;
     Py_RETURN_NONE;
@@ -165,7 +167,6 @@ run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
 PyObject *
 run_process_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
     (void)self;
-    PyGILState_STATE gstate = PyGILState_Ensure();
     static char *kwlist[] = {"zclient_handler", NULL};
     PyObject* capsule;
 
@@ -179,9 +180,10 @@ run_process_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
     zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
     if (!zclient)
         return (NULL);
+    Py_BEGIN_ALLOW_THREADS;
     zclient_process_input(zclient);
+    Py_END_ALLOW_THREADS;
 
-    PyGILState_Release(gstate);
     Py_RETURN_NONE;
 }
 

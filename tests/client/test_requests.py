@@ -18,11 +18,11 @@ import pytest
 )
 async def test_math_server_all_cases(math_example_server, operation, input_value, expected_status, expected_body):
     client = PygeistClient()
-    client.link('127.0.0.1', math_example_server)
+    await client.link('127.0.0.1', math_example_server)
 
     res = await client.get('/', {'Operation-Type': operation}, str(input_value))
 
     assert res.status == expected_status
     assert res.body == expected_body
 
-    client.unlink()
+    await client.unlink()

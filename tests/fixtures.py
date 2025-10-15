@@ -67,7 +67,7 @@ def math_example_server() -> int:
                 try:
                     chunk = client_sock.recv(1024)
                     if not chunk:
-                        break
+                        return
                     data += chunk
                 except socket.timeout:
                     break
@@ -165,70 +165,76 @@ def math_example_server() -> int:
 
     stop_event = threading.Event()
 
+
     def handle_client(client_sock):
         try:
+            buffer = b""
             while not stop_event.is_set():
-                data = b""
-                while True:
-                    chunk = client_sock.recv(1024)
-                    if not chunk:
-                        return  # client closed
-                    data += chunk
-                    if b"\r\n\r\n" in data:
-                        break  # headers done
+                chunk = client_sock.recv(1024)
+                if not chunk:
+                    break
+                buffer += chunk
 
-                lines = data.decode().split("\r\n")
-                if not lines:
-                    continue
+                while b"\r\n\r\n" in buffer:
+                    # Split one full message
+                    header_part, remainder = buffer.split(b"\r\n\r\n", 1)
+                    buffer = remainder  # keep rest for next loop
+                    lines = header_part.decode().split("\r\n")
+                    if not lines:
+                        continue
 
-                try:
-                    method, path, req_id = lines[0].split()
-                except ValueError:
-                    continue  # invalid request
+                    try:
+                        method, path, req_id = lines[0].split()
+                    except ValueError:
+                        continue
 
-                headers = {}
-                i = 1
-                while lines[i]:
-                    if ":" in lines[i]:
-                        key, value = lines[i].split(":", 1)
-                        headers[key.strip()] = value.strip()
-                    i += 1
-                body = "\r\n".join(lines[i + 1:]).strip()
+                    headers = {}
+                    i = 1
+                    while i < len(lines) and lines[i]:
+                        if ":" in lines[i]:
+                            key, value = lines[i].split(":", 1)
+                            headers[key.strip()] = value.strip()
+                        i += 1
 
-                op_type = headers.get("Operation-Type")
-                try:
-                    num = float(body)
-                except Exception:
-                    response = f"{RES_VERSION} 400 {req_id}\r\nContent-Length: 0\r\n\r\n"
-                else:
-                    if op_type == "sum":
-                        result = num + num
-                    elif op_type == "sub":
-                        result = num - num
-                    elif op_type == "mul":
-                        result = num * num
-                    elif op_type == "div":
-                        if num == 0:
+                    # The body for this message comes from remainder, not the previous buffer
+                    body = remainder.decode().strip()
+                    op_type = headers.get("Operation-Type")
+
+                    try:
+                        num = float(body)
+                    except Exception:
+                        response = f"{RES_VERSION} 400 {req_id}\r\nContent-Length: 0\r\n\r\n"
+                    else:
+                        if op_type == "sum":
+                            result = num + num
+                        elif op_type == "sub":
+                            result = num - num
+                        elif op_type == "mul":
+                            result = num * num
+                        elif op_type == "div":
+                            if num == 0:
+                                response = f"{RES_VERSION} 400 {req_id}\r\nContent-Length: 0\r\n\r\n"
+                                client_sock.sendall(response.encode())
+                                continue
+                            result = num / num
+                        else:
                             response = f"{RES_VERSION} 400 {req_id}\r\nContent-Length: 0\r\n\r\n"
                             client_sock.sendall(response.encode())
                             continue
-                        result = num / num
-                    else:
-                        response = f"{RES_VERSION} 400 {req_id}\r\nContent-Length: 0\r\n\r\n"
-                        client_sock.sendall(response.encode())
-                        continue
 
-                    body_bytes = str(result).encode()
-                    response = (
-                        f"{RES_VERSION} 200 {req_id}\r\n"
-                        f"Content-Length: {len(body_bytes)}\r\n"
-                        "Content-Type: text/plain\r\n"
-                        "\r\n"
-                        f"{result}"
-                    )
-                client_sock.sendall(response.encode())
+                        body_bytes = str(result).encode()
+                        response = (
+                            f"{RES_VERSION} 200 {req_id}\r\n"
+                            f"Content-Length: {len(body_bytes)}\r\n"
+                            "Content-Type: text/plain\r\n"
+                            "\r\n"
+                            f"{result}"
+                        )
+                    client_sock.sendall(response.encode())
         finally:
             client_sock.close()
+
+
 
     def server_loop():
         while not stop_event.is_set():
