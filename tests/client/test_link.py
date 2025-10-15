@@ -7,17 +7,17 @@ import pytest
 def test_successful(raw_example_server):
     client = PygeistClient()
 
-    client.connect('127.0.0.1', raw_example_server)
-    client.disconnect()
+    client.link('127.0.0.1', raw_example_server)
+    client.unlink()
 
 
 def test_error():
     client = PygeistClient()
 
     with pytest.raises(FailedConnection):
-        client.connect('127.0.0.1', 5000)
+        client.link('127.0.0.1', 5000)
 
 def test_unconn_disconn():
     client = PygeistClient()
 
-    client.disconnect()
+    client.unlink()

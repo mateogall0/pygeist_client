@@ -9,10 +9,10 @@ class PygeistClient(AsyncMethodHandler):
     def __init__(self) -> None:
         self.c = _adapter._create_client(1, 1)
 
-    def connect(self,
-                url: str,
-                port: int,
-                ) -> None:
+    def link(self,
+             url: str,
+             port: int,
+             ) -> None:
         _adapter._connect_client(self.c, url, port)
 
     async def _handle(self,
@@ -42,9 +42,9 @@ class PygeistClient(AsyncMethodHandler):
                                        self.c,
                                        req_id)
 
-    def disconnect(self) -> None:
+    def unlink(self) -> None:
         _adapter._disconnect_client(self.c)
 
     def __del__(self) -> None:
-        self.disconnect()
+        self.unlink()
         _adapter._destroy_client(self.c)
