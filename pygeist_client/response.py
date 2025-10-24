@@ -23,8 +23,10 @@ class Response:
     def body(self, body: str | dict | NoneType) -> None:
         try:
             self._body = json.loads(body)
-        except (json.JSONDecodeError, TypeError):
-            self._body = None
+        except (json.JSONDecodeError, TypeError) as e:
+            self._body = body
+            if len(body) == 0:
+                self._body = None
 
     @property
     def status(self) -> int:
@@ -60,3 +62,8 @@ class Response:
             else:
                 headers[line.strip()] = None
         self._headers = headers
+
+    # def __str__(self) -> str:
+    #     return f'Response:\n  status: {self.status}\n  body: {self.body}'
+
+    # __repr__ = __str__

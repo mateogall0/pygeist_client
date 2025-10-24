@@ -1,6 +1,5 @@
 from pygeist_client import _adapter
 from pygeist_client.response import Response
-from pygeist_client.exceptions import FailedResponseProcess
 from pygeist_client.abstract.methods_handler import AsyncMethodHandler
 import asyncio
 
@@ -16,7 +15,12 @@ class PygeistClient(AsyncMethodHandler):
                    url: str,
                    port: int,
                    ) -> None:
-        _adapter._connect_client(self.c, url, port)
+        if url == 'localhost':
+            url = '127.0.0.1'
+        await asyncio.to_thread(_adapter._connect_client,
+                                self.c,
+                                url,
+                                port,)
 
     async def _handle(self,
                       method: int,
@@ -39,14 +43,16 @@ class PygeistClient(AsyncMethodHandler):
                               self.c),
             timeout=self.response_timeout,
         )
-        await asyncio.to_thread(_adapter._process_client_input, self.c)
+        await asyncio.to_thread(_adapter._process_client_input,
+                                self.c)
 
         return await asyncio.to_thread(_adapter._get_client_response,
                                        self.c,
                                        req_id)
 
     async def unlink(self) -> None:
-        _adapter._disconnect_client(self.c)
+        await asyncio.to_thread(_adapter._disconnect_client,
+                                self.c)
 
     def __del__(self) -> None:
         _adapter._destroy_client(self.c)
