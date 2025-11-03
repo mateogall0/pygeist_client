@@ -15,6 +15,10 @@ class PygeistClient(AsyncMethodHandler):
                    url: str,
                    port: int,
                    ) -> None:
+        """
+        Stablish a link to a server that utilizes the Zeitgeist protocol
+        This needs to be done before making any request to the server
+        """
         if url == 'localhost':
             url = '127.0.0.1'
         await asyncio.to_thread(_adapter._connect_client,

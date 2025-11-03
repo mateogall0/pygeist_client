@@ -75,7 +75,6 @@ run_connect_client(PyObject* self, PyObject* args, PyObject* kwargs) {
     if (connect_zclient(zclient, url, port) == 1) {
         PyErr_SetString(FailedConnection,
                         "couldn't connect");
-
         return (NULL);
     }
     Py_RETURN_NONE;
@@ -132,6 +131,11 @@ run_make_client_request(PyObject* self, PyObject* args, PyObject* kwargs) {
     zclient_handler_t* zclient = PyCapsule_GetPointer(capsule, ZHANDLER_NAME_STR);
     if (!zclient)
         return (NULL);
+    if (!zclient->connection->connected) {
+        PyErr_SetString(NotConnected,
+                        "not yet linked");
+        return (NULL);
+    }
 
     unsigned long req_id;
 
