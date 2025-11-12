@@ -1,4 +1,5 @@
 import pytest
+import json
 from pygeist import (ZeitgeistAPI,
                      Request,
                      send_message,
@@ -20,9 +21,17 @@ def port() -> int:
     async def wait_msg(req: Request):
         waiting.append(req.client_key)
 
+    async def body(msg: dict):
+        for k in waiting:
+            print(f'sending: {msg} to {k}')
+            sent = await send_message(k, json.dumps(msg))
+            print(f'sent: {sent}')
+
+
     msgs_r = Router('/msgs')
     msgs_r.post('/', wait_msg, status_code=200)
     msgs_r.post('/broadcast', broadcast, status_code=200)
+    msgs_r.post('/body', body, status_code=200)
 
     _app.include_router(msgs_r)
 

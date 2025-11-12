@@ -3,6 +3,7 @@ from pygeist_client.response import Response
 from pygeist_client.abstract.methods_handler import AsyncMethodHandler
 from pygeist_client.unrequested import Unrequested
 import asyncio
+import json
 
 
 class PygeistClient(AsyncMethodHandler):
@@ -34,6 +35,7 @@ class PygeistClient(AsyncMethodHandler):
                       body = '',
                       ) -> Response:
         headers_str = "\r\n".join(f"{k}: {v}" for k, v in headers.items()) + "\r\n\r\n"
+        body = body if isinstance(body, str) else json.dumps(body)
         req_id = await asyncio.to_thread(
             _adapter._make_client_request,
             self.c,
