@@ -32,4 +32,8 @@ run_get_client_response(PyObject* self, PyObject* args, PyObject* kwargs);
 PyObject *
 run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwargs);
 
+PyObject *
+run_is_client_connected(PyObject* self, PyObject* args, PyObject* kwargs);
+
+
 #endif

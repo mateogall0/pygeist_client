@@ -42,6 +42,10 @@ static PyMethodDef AdapterMethods[] = {
      run_pop_client_unrequested_payload,
      METH_VARARGS | METH_KEYWORDS,
      "Pop unrequested payload"},
+    {"_is_connected",
+     run_is_client_connected,
+     METH_VARARGS | METH_KEYWORDS,
+     "Assert if a client is connected"},
     {NULL, NULL, 0, NULL}
 };
 
