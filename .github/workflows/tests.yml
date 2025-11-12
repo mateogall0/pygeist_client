@@ -1,12 +1,10 @@
 name: Tests
 
-
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
 
 jobs:
   test:
@@ -14,21 +12,34 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+
     steps:
       - uses: actions/checkout@v5
         with:
           submodules: true
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: pip install -r requirements-dev.txt
+      - name: Upgrade pip and install build tools
+        run: |
+          pip install --upgrade pip
+          pip install build twine
 
-      - name: Build
+      - name: Install dev dependencies
+        run: |
+          pip install .[dev]
+
+      - name: Build native extensions
         run: make
 
       - name: Run tests
         run: pytest -v
+
+      - name: Build distribution package
+        run: python -m build --sdist --wheel
+
+      - name: Validate package metadata
+        run: twine check dist/*
