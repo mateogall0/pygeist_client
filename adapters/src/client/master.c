@@ -38,6 +38,10 @@ static PyMethodDef AdapterMethods[] = {
      run_get_client_response,
      METH_VARARGS | METH_KEYWORDS,
      "Get `zclient_handler_t` response"},
+    {"_pop_client_message",
+     run_pop_client_unrequested_payload,
+     METH_VARARGS | METH_KEYWORDS,
+     "Pop unrequested payload"},
     {NULL, NULL, 0, NULL}
 };
 

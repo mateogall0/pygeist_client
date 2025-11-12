@@ -4,7 +4,7 @@
 #include "adapters/include/client/exceptions.h"
 #include "adapters/include/client/config.h"
 #include "adapters/include/client/classes.h"
-
+#include "core/include/debug.h"
 
 PyObject*
 run_create_client(PyObject* self,
@@ -165,6 +165,13 @@ run_listen_client_input(PyObject* self, PyObject* args, PyObject* kwargs) {
     Py_BEGIN_ALLOW_THREADS;
     zclient_listen_input(zclient);
     Py_END_ALLOW_THREADS;
+    #ifdef DEBUG
+    received_payload_t *c = zclient->unresolved_payload->head;
+    while (c) {
+        print_debug("Payload in queue to be processed: %s\n", c->data);
+        c = c->next;
+    }
+    #endif
     Py_RETURN_NONE;
 }
 
@@ -251,6 +258,7 @@ run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwa
     Py_END_ALLOW_THREADS;
     if (!payload)
         Py_RETURN_NONE;
+    print_debug("Payload popped on CPython: %s\n", payload->data);
     PyObject* arglist = Py_BuildValue("(s)", payload->data);
     PyObject* instance = PyObject_CallObject(Unrequested, arglist);
     Py_DECREF(arglist);

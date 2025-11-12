@@ -1,6 +1,7 @@
 from pygeist_client import _adapter
 from pygeist_client.response import Response
 from pygeist_client.abstract.methods_handler import AsyncMethodHandler
+from pygeist_client.unrequested import Unrequested
 import asyncio
 
 
@@ -60,3 +61,15 @@ class PygeistClient(AsyncMethodHandler):
 
     def __del__(self) -> None:
         _adapter._destroy_client(self.c)
+
+    async def pop_msg(self,
+                      timeout=5, # seconds
+                      ) -> Unrequested | None:
+        await asyncio.wait_for(
+            asyncio.to_thread(_adapter._listen_client_input,
+                              self.c),
+            timeout=timeout,
+        )
+        await asyncio.to_thread(_adapter._process_client_input,
+                                self.c)
+        return await asyncio.to_thread(_adapter._pop_client_message, self.c)
