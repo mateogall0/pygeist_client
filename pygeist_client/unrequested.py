@@ -1,3 +1,5 @@
 class Unrequested:
-    def __init__(self, data: str) -> None:
-        self.data = data
+    def __init__(self, headers: str, body: str, raw: str) -> None:
+        self.raw = raw
+        self.headers = headers
+        self.body = body

@@ -5,6 +5,7 @@
 #include "adapters/include/client/config.h"
 #include "adapters/include/client/classes.h"
 #include "core/include/debug.h"
+#include "core/include/client/message.h"
 
 PyObject*
 run_create_client(PyObject* self,
@@ -258,10 +259,17 @@ run_pop_client_unrequested_payload(PyObject* self, PyObject* args, PyObject* kwa
     Py_END_ALLOW_THREADS;
     if (!payload)
         Py_RETURN_NONE;
+
     print_debug("Payload popped on CPython: %s\n", payload->data);
-    PyObject* arglist = Py_BuildValue("(s)", payload->data);
+    message_t *m = parse_message(payload->data);
+    if (!m) {
+        Py_RETURN_NONE;
+    }
+
+    PyObject* arglist = Py_BuildValue("(sss)", m->headers, m->body, payload->data);
     PyObject* instance = PyObject_CallObject(Unrequested, arglist);
     Py_DECREF(arglist);
+    free_message(m);
 
     return (instance);
 }
