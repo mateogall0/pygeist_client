@@ -15,8 +15,8 @@ class PygeistClient(AsyncMethodHandler):
     Can be used in a context-managed way:
     ```python
     >>> async with PygeistClient() as client:
-    >>>     await client.link('https://example.org', 8000)
-    >>>     response = await client.get('/')
+    ...     await client.link('https://example.org', 8000)
+    ...     response = await client.get('/')
     ```
 
     or in a manual explicit way:
@@ -31,7 +31,7 @@ class PygeistClient(AsyncMethodHandler):
     def __init__(self,
                  response_timeout=5, # seconds
                  ) -> None:
-        self.c = _adapter._create_client(1, 1)
+        self.c = _adapter._create_client(4, 4)
         self.response_timeout = response_timeout
 
     async def link(self,
@@ -109,7 +109,7 @@ class PygeistClient(AsyncMethodHandler):
     async def __aenter__(self):
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         if exc_type != FailedConnection:
             await self.unlink()
 
