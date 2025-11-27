@@ -8,7 +8,15 @@ ifeq ($(DEBUG),1)
     CFLAGS += -g -DDEBUG
 endif
 
-LDFLAGS := -shared $(shell python3-config --ldflags)
+
+LDFLAGS := -shared $(shell python3-config --ldflags --embed)
+
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    CFLAGS += -arch arm64
+    LDFLAGS += -arch arm64
+endif
 
 # Source directories
 CORE_CLIENT_SRC := core/src/client
