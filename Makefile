@@ -9,13 +9,13 @@ ifeq ($(DEBUG),1)
 endif
 
 
-LDFLAGS := -shared $(shell python3-config --ldflags --embed)
+LDFLAGS := -shared $(shell python3-config --ldflags)
 
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
   CC = clang
-  LDFLAGS += -arch arm64 -dynamiclib
+  LDFLAGS += -shared -arch arm64 -undefined dynamic_lookup
 endif
 
 # Source directories

@@ -1,9 +1,6 @@
-# Include all Python files in the client package
 recursive-include pygeist_client *.py
-
-# Include compiled extensions
 recursive-include pygeist_client *.so
+recursive-include pygeist_client *.dylib
 
-# Include docs and metadata
 include README.md
 include LICENSE

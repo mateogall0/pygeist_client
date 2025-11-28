@@ -1,53 +1,61 @@
-name: Build and publish
+name: Build and Publish Wheels
 
 on:
   release:
     types: [published]
 
 jobs:
-  build_wheels:
-    name: Build
+  build-wheels:
+    name: Build wheels
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
 
     steps:
-      - name: Checkout source
+      - name: Checkout code
         uses: actions/checkout@v5
         with:
           submodules: true
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: 3.12
 
-      - name: Install cibuildwheel
-        run: pip install cibuildwheel
+      - name: Install build tooling
+        run: pip install cibuildwheel==2.15.0 twine
 
-      - name: Build wheels
-        run: cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_BEFORE_BUILD: "make"
+      - name: Build _adapter.so
+        run: make
 
-      - uses: actions/upload-artifact@v4
+      - name: Build Python wheel
+        run: pip wheel -w dist .
+
+      - name: List built wheels
+        run: ls -lhR dist/
+
+      - name: Upload wheels artifact
+        uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
-          path: wheelhouse/*.whl
-
+          path: dist/*.whl
 
   publish:
-    needs: build_wheels
+    name: Publish all wheels
+    needs: build-wheels
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
-          path: wheelhouse
+          path: dist
           merge-multiple: true
+
+      - name: List wheels
+        run: ls -lhR dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
-          packages-dir: wheelhouse
+          packages-dir: dist

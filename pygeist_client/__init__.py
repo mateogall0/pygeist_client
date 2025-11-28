@@ -1,4 +1,4 @@
-__version__ = "0.0.4"
+__version__ = "0.0.8"
 
 from .client import PygeistClient
 from pygeist_client.response import Response

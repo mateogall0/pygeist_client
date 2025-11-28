@@ -27,3 +27,6 @@ include = ["pygeist_client*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "pygeist_client.__version__" }
+
+[tool.setuptools.package-data]
+pygeist_client = ["_adapter.so"]
