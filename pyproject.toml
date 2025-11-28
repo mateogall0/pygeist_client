@@ -10,14 +10,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
-[project.optional-dependencies]
-dev = [
-  "pygeist==0.4.0",
-  "pytest",
-  "pytest-asyncio",
-  "pytest-timeout"
-]
-
 [tool.setuptools]
 include-package-data = true
 zip-safe = false
@@ -27,3 +19,6 @@ include = ["pygeist_client*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "pygeist_client.__version__" }
+
+[tool.setuptools.package-data]
+pygeist_client = ["_adapter.so"]
