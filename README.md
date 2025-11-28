@@ -26,27 +26,27 @@ pip install pygeist_client
 
 Can be used in a context-managed way:
 ```python
->>> from pygeist_client import PygeistClient
->>> async with PygeistClient() as client:
-...     await client.link('https://example.org', 8000)
-...     response = await client.get('/')
+from pygeist_client import PygeistClient
+async with PygeistClient() as client:
+    await client.link('https://example.org', 8000)
+    response = await client.get('/')
 ```
 
 or in a manual explicit way:
 ```python
->>> from pygeist_client import PygeistClient
->>> client = PygeistClient()
->>> await client.link('https://example.org', 8000)
->>> response = await client.get('/')
->>> await client.unlink()
+from pygeist_client import PygeistClient
+client = PygeistClient()
+await client.link('https://example.org', 8000)
+response = await client.get('/')
+await client.unlink()
 ```
 
 **Server messages**:
 ```python
->>> from pygeist_client import PygeistClient
->>> async with PygeistClient() as client:
-...     await client.link('https://example.org', 8000)
-...     message = await client.pop_msg(timeout=3)
+from pygeist_client import PygeistClient
+async with PygeistClient() as client:
+    await client.link('https://example.org', 8000)
+    message = await client.pop_msg(timeout=3)
 ```
 
 ## Contributing
