@@ -5,7 +5,7 @@ CFLAGS := -Wall -Wextra -std=gnu11 -fPIC \
 	  $(shell python3-config --includes)
 
 ifeq ($(DEBUG),1)
-    CFLAGS += -g -DDEBUG
+  CFLAGS += -g -DDEBUG
 endif
 
 
@@ -14,8 +14,8 @@ LDFLAGS := -shared $(shell python3-config --ldflags --embed)
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-    CFLAGS += -arch arm64
-    LDFLAGS += -arch arm64
+  CC = clang
+  LDFLAGS += -arch arm64 -dynamiclib
 endif
 
 # Source directories

@@ -1,12 +1,12 @@
-name: Publish
+name: Build and publish
 
 on:
   release:
     types: [published]
 
 jobs:
-  build:
-    name: Build wheels
+  build_wheels:
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -18,50 +18,36 @@ jobs:
         with:
           submodules: true
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install build dependencies
-        run: |
-          pip install --upgrade pip
-          pip install build twine setuptools wheel
+      - name: Install cibuildwheel
+        run: pip install cibuildwheel
 
-      - name: Build native extensions
-        run: make
+      - name: Build wheels
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BEFORE_BUILD: "make"
 
-      - name: Build package
-        run: python -m build --sdist --wheel
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.os }}
-          path: dist/*
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
 
 
   publish:
-    name: Publish to PyPI
-    needs: build
+    needs: build_wheels
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          path: dist
-
-      - name: Flatten dist folder
-        run: |
-          mkdir -p final-dist
-          find dist -type f -name "*.whl" -exec cp {} final-dist/ \;
-          find dist -type f -name "*.tar.gz" -exec cp {} final-dist/ \;
-          echo "Files to publish:"
-          ls -lh final-dist
+          path: wheelhouse
+          merge-multiple: true
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
-          packages-dir: final-dist
+          packages-dir: wheelhouse
