@@ -48,7 +48,6 @@ jobs:
 
       - name: Upgrade pip and install build tools
         run: |
-          pip install --upgrade pip
           pip install build twine
 
       - name: Install dev dependencies
