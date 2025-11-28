@@ -20,6 +20,7 @@ dev = [
 
 [tool.setuptools]
 include-package-data = true
+zip-safe = false
 
 [tool.setuptools.packages.find]
 include = ["pygeist_client*"]
