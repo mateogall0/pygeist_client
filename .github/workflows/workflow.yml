@@ -5,13 +5,12 @@ on:
     types: [published]
 
 jobs:
-  publish:
-    name: Publish release
+  build:
+    name: Build wheels
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python: [3.10, 3.11, 3.12, 3.13]
 
     steps:
       - name: Checkout source
@@ -22,9 +21,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "3.12"
 
-      - name: Install build backend and tools
+      - name: Install build dependencies
         run: |
           pip install --upgrade pip
           pip install build twine setuptools wheel
@@ -35,10 +34,34 @@ jobs:
       - name: Build package
         run: python -m build --sdist --wheel
 
-      - name: Verify package metadata
-        run: twine check dist/*
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/*
+
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten dist folder
+        run: |
+          mkdir -p final-dist
+          find dist -type f -name "*.whl" -exec cp {} final-dist/ \;
+          find dist -type f -name "*.tar.gz" -exec cp {} final-dist/ \;
+          echo "Files to publish:"
+          ls -lh final-dist
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: final-dist
