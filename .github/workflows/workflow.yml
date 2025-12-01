@@ -74,3 +74,24 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           packages-dir: dist
+
+  verify:
+    name: Verify version
+    needs: publish
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        py: [3.10, 3.11, 3.12, 3.13]
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+
+      - name: Install from pip
+        run: python -m pip install --upgrade --no-cache-dir pygeist_client -v
+
+      - name: Check _adapter
+        run: python -c "import pygeist_client; print(pygeist_client._adapter.METHODS)"
